@@ -25,7 +25,7 @@ jobs:
 
     - name: Build and push Docker image
       run: |
-        IMAGE_NAME=ginolucianorojo/web-app
+        IMAGE_NAME=ginolucianorojoweb-app
         BRANCH=${GITHUB_REF#refs/heads/}
         docker build -t $IMAGE_NAME:$BRANCH .
         docker push $IMAGE_NAME:$BRANCH
@@ -49,9 +49,17 @@ jobs:
       env:
         ENVIRONMENT_NAME: ${{ github.ref == 'refs/heads/develop' && 'Develop' || 'Testing' }}
       run: |
+        # Variables
         CLUSTER_NAME=web-app-cluster
         SERVICE_NAME=web-app-service
         TASK_FAMILY=web-app-task
-  
-        aws ecs update-service --cluster $CLUSTER_NAME --service $SERVICE_NAME --force-new-deployment
-        aws ecs describe-services --cluster $CLUSTER_NAME --services $SERVICE_NAME
+        CONTAINER_NAME=web-app
+        IMAGE_NAME=ginolucianorojo/web-app:${{ github.ref }}#refs/heads/
+        
+        # Update ECS service
+        TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition $TASK_FAMILY --query 'taskDefinition.taskDefinitionArn' --output text)
+        aws ecs update-service --cluster $CLUSTER_NAME --service $SERVICE_NAME --force-new-deployment --task-definition $TASK_DEFINITION
+
+        # Get service URL
+        LOAD_BALANCER_DNS=$(aws elbv2 describe-load-balancers --names $SERVICE_NAME --query 'LoadBalancers[0].DNSName' --output text)
+        echo "Application is deployed at http://$LOAD_BALANCER_DNS"

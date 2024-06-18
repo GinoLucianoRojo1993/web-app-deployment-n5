@@ -1,3 +1,4 @@
+main.obsolet
 name: CI/CD Pipeline
 
 on:
@@ -25,7 +26,7 @@ jobs:
 
     - name: Build and push Docker image
       run: |
-        IMAGE_NAME=your-dockerhub-username/web-app
+        IMAGE_NAME=ginolucianorojo/web-app
         BRANCH=${GITHUB_REF#refs/heads/}
         docker build -t $IMAGE_NAME:$BRANCH .
         docker push $IMAGE_NAME:$BRANCH
@@ -43,23 +44,15 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+        aws-region: us-east-2
 
     - name: Deploy to ECS using AWS CLI
       env:
         ENVIRONMENT_NAME: ${{ github.ref == 'refs/heads/develop' && 'Develop' || 'Testing' }}
       run: |
-        # Variables
         CLUSTER_NAME=web-app-cluster
         SERVICE_NAME=web-app-service
         TASK_FAMILY=web-app-task
-        CONTAINER_NAME=web-app
-        IMAGE_NAME=your-dockerhub-username/web-app:${{ github.ref#refs/heads/ }}
-        
-        # Update ECS service
-        TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition $TASK_FAMILY --query 'taskDefinition.taskDefinitionArn' --output text)
-        aws ecs update-service --cluster $CLUSTER_NAME --service $SERVICE_NAME --force-new-deployment --task-definition $TASK_DEFINITION
-
-        # Get service URL
-        LOAD_BALANCER_DNS=$(aws elbv2 describe-load-balancers --names $SERVICE_NAME --query 'LoadBalancers[0].DNSName' --output text)
-        echo "Application is deployed at http://$LOAD_BALANCER_DNS"
+  
+        aws ecs update-service --cluster $CLUSTER_NAME --service $SERVICE_NAME --force-new-deployment
+        aws ecs describe-services --cluster $CLUSTER_NAME --services $SERVICE_NAME
