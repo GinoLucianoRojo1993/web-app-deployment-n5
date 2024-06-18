@@ -1,4 +1,3 @@
-main.obsolet
 name: CI/CD Pipeline
 
 on:
