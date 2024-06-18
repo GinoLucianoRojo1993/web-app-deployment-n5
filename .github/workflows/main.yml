@@ -47,11 +47,11 @@ jobs:
 
     - name: Deploy to ECS using AWS CLI
       env:
-          ENVIRONMENT_NAME: ${{ github.ref == 'refs/heads/develop' && 'Develop' || 'Testing' }}
-        run: |
-          CLUSTER_NAME=web-app-cluster
-          SERVICE_NAME=web-app-service
-          TASK_FAMILY=web-app-task
+        ENVIRONMENT_NAME: ${{ github.ref == 'refs/heads/develop' && 'Develop' || 'Testing' }}
+      run: |
+        CLUSTER_NAME=web-app-cluster
+        SERVICE_NAME=web-app-service
+        TASK_FAMILY=web-app-task
   
-          aws ecs update-service --cluster $CLUSTER_NAME --service $SERVICE_NAME --force-new-deployment
-          aws ecs describe-services --cluster $CLUSTER_NAME --services $SERVICE_NAME
+        aws ecs update-service --cluster $CLUSTER_NAME --service $SERVICE_NAME --force-new-deployment
+        aws ecs describe-services --cluster $CLUSTER_NAME --services $SERVICE_NAME
